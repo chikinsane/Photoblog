@@ -4,8 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Photoblog</title>
+  <style>
+    #bulk-btn {
+      position: fixed; top: 14px; right: 16px; z-index: 99999;
+      background: #c4a882; color: #0a0a0f; border: none;
+      padding: 8px 18px; font-family: system-ui, sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer; font-weight: 600;
+    }
+    #bulk-btn:hover { background: #d4b892; }
+  </style>
 </head>
 <body>
+  <a href="/admin/upload.html" id="bulk-btn">&#128247; Bulk Upload</a>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
 </html>

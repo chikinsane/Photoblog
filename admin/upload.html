@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Upload — Admin</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f; --bg-card: #111118; --bg-elevated: #16161f;
+      --text: #e8e0d4; --text-muted: #98918e; --accent: #8ba3b5;
+      --gold: #c4a882; --border: #1e1e2a; --green: #5a9e78; --err: #c07070;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+    /* ── Login ── */
+    #loginScreen {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 100vh; gap: 1.5rem;
+    }
+    #loginScreen h1 { font-family: Georgia,serif; font-weight:300; font-size:1.5rem; color:var(--gold); letter-spacing:.12em; }
+    #loginScreen p  { color: var(--text-muted); font-size: .85rem; }
+    .btn-login {
+      background: transparent; border: 1px solid var(--gold); color: var(--gold);
+      padding: .85rem 2.5rem; font-size: .78rem; letter-spacing: .14em;
+      text-transform: uppercase; cursor: pointer; transition: all .2s;
+    }
+    .btn-login:hover { background: var(--gold); color: var(--bg); }
+
+    /* ── Upload screen ── */
+    #uploadScreen { display: none; max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 { font-family: Georgia,serif; font-weight:300; font-size:1.4rem; color:var(--gold); letter-spacing:.08em; }
+    .page-header a { color:var(--accent); text-decoration:none; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; border-bottom:1px solid currentColor; }
+
+    /* Drop zone */
+    #dropZone {
+      border: 2px dashed var(--border); background: var(--bg-card);
+      padding: 4rem 2rem; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s; margin-bottom: 1.5rem;
+    }
+    #dropZone.dragover { border-color: var(--gold); background: var(--bg-elevated); }
+    #dropZone .icon { font-size: 2.8rem; margin-bottom: .8rem; }
+    #dropZone p { color: var(--text-muted); font-size: .88rem; line-height: 1.7; }
+    #dropZone strong { color: var(--gold); }
+    #dropZone .browse { cursor: pointer; text-decoration: underline; color: var(--accent); }
+
+    /* Tags row */
+    .tags-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+    .tags-row label { color:var(--text-muted); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+    .tags-row input {
+      flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text); padding: .7rem 1rem; font-size: .88rem; outline: none;
+    }
+    .tags-row input:focus { border-color: var(--accent); }
+    .tags-row input::placeholder { color: var(--text-muted); opacity: .5; }
+
+    /* Preview grid */
+    #previewGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+
+    .p-card { background: var(--bg-card); border: 1px solid var(--border); position: relative; overflow: hidden; }
+    .p-card img { width:100%; aspect-ratio:3/2; object-fit:cover; display:block; }
+    .p-card-fields { padding: .85rem; display: flex; flex-direction: column; gap: .55rem; }
+    .p-card input, .p-card textarea {
+      width:100%; background: var(--bg-elevated); border: 1px solid var(--border);
+      color: var(--text); padding: .45rem .7rem; font-size: .8rem; font-family: inherit; outline: none;
+    }
+    .p-card input:focus, .p-card textarea:focus { border-color: var(--accent); }
+    .p-card textarea { resize: none; height: 52px; }
+    .p-card input::placeholder, .p-card textarea::placeholder { color: var(--text-muted); opacity: .45; }
+    .remove-btn {
+      position:absolute; top:.5rem; right:.5rem;
+      background:rgba(10,10,15,.75); border:1px solid var(--border); color:var(--text);
+      width:26px; height:26px; font-size:.78rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    }
+    .badge {
+      position:absolute; top:.5rem; left:.5rem; display:none;
+      padding:.18rem .55rem; font-size:.68rem; letter-spacing:.08em; border:1px solid;
+    }
+    .p-card.uploading .badge { display:block; color:var(--accent); border-color:var(--accent); background:rgba(139,163,181,.12); }
+    .p-card.done     .badge { display:block; color:var(--green); border-color:var(--green); background:rgba(90,158,120,.12); }
+    .p-card.error    .badge { display:block; color:var(--err); border-color:var(--err); background:rgba(192,112,112,.12); }
+
+    /* Actions */
+    .actions {
+      display: flex; align-items: center; gap: 1rem;
+      padding-top: 1.5rem; border-top: 1px solid var(--border);
+    }
+    .btn { padding:.85rem 2rem; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; border:1px solid; transition:all .2s; font-family:inherit; }
+    .btn-gold  { background:var(--gold); border-color:var(--gold); color:var(--bg); }
+    .btn-gold:hover  { background:transparent; color:var(--gold); }
+    .btn-gold:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-ghost { background:transparent; border-color:var(--border); color:var(--text-muted); }
+    .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+    #statusMsg { margin-left:auto; font-size:.82rem; color:var(--accent); max-width:340px; text-align:right; }
+    #statusMsg.err { color:var(--err); } #statusMsg.ok { color:var(--green); }
+
+    /* Progress bar */
+    #progressWrap { width:100%; height:3px; background:var(--border); margin-bottom:1.5rem; display:none; }
+    #progressBar  { height:3px; background:var(--gold); width:0; transition:width .3s; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen">
+  <h1>Photoblog Admin</h1>
+  <p>Sign in to bulk upload photos</p>
+  <button class="btn-login" id="loginBtn">Sign In</button>
+</div>
+
+<!-- Upload -->
+<div id="uploadScreen">
+  <div class="page-header">
+    <h1>&#128247; Bulk Photo Upload</h1>
+    <a href="/admin/">&#8592; Back to CMS</a>
+  </div>
+
+  <div id="dropZone">
+    <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
+    <div class="icon">&#128247;</div>
+    <p><strong>Drag &amp; drop photos here</strong></p>
+    <p>or <span class="browse" id="browseBtn">browse files</span> &mdash; JPG, PNG, WebP supported</p>
+  </div>
+
+  <div class="tags-row">
+    <label>Tags for all:</label>
+    <input type="text" id="defaultTags" placeholder="landscape, nature, travel  (comma-separated, applied to every photo)">
+  </div>
+
+  <div id="progressWrap"><div id="progressBar"></div></div>
+
+  <div id="previewGrid"></div>
+
+  <div class="actions" id="actionsRow" style="display:none">
+    <button class="btn btn-gold" id="uploadBtn">Upload All Photos</button>
+    <button class="btn btn-ghost" id="clearBtn">Clear All</button>
+    <span id="statusMsg"></span>
+  </div>
+</div>
+
+<script>
+let files = [];
+
+/* ── Auth ── */
+netlifyIdentity.on('init', u => { if (u) showUpload(); });
+netlifyIdentity.on('login', () => { netlifyIdentity.close(); showUpload(); });
+document.getElementById('loginBtn').addEventListener('click', () => netlifyIdentity.open());
+
+function showUpload() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('uploadScreen').style.display = 'block';
+}
+
+async function jwt() {
+  const u = netlifyIdentity.currentUser();
+  if (!u) throw new Error('Not logged in');
+  return u.jwt();
+}
+
+/* ── Drop zone ── */
+const dz = document.getElementById('dropZone');
+const fi = document.getElementById('fileInput');
+
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('dragover');
+  addFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
+});
+document.getElementById('browseBtn').addEventListener('click', e => { e.stopPropagation(); fi.click(); });
+fi.addEventListener('change', () => { addFiles([...fi.files]); fi.value = ''; });
+
+function addFiles(newFiles) {
+  newFiles.forEach(file => {
+    const title = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+    files.push({ file, title, description: '', url: URL.createObjectURL(file) });
+  });
+  render();
+}
+
+function render() {
+  const grid = document.getElementById('previewGrid');
+  const actions = document.getElementById('actionsRow');
+  if (!files.length) { grid.innerHTML = ''; actions.style.display = 'none'; return; }
+  actions.style.display = 'flex';
+  grid.innerHTML = files.map((f, i) => `
+    <div class="p-card" id="pc${i}">
+      <img src="${f.url}" alt="">
+      <span class="badge" id="bd${i}"></span>
+      <button class="remove-btn" onclick="removeFile(${i})">&#x2715;</button>
+      <div class="p-card-fields">
+        <input type="text" placeholder="Title" value="${esc(f.title)}" oninput="files[${i}].title=this.value">
+        <textarea placeholder="Description (optional)" oninput="files[${i}].description=this.value">${esc(f.description)}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+function removeFile(i) {
+  URL.revokeObjectURL(files[i].url);
+  files.splice(i, 1);
+  render();
+}
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  files.forEach(f => URL.revokeObjectURL(f.url));
+  files = []; render(); setStatus('');
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('progressBar').style.width = '0';
+});
+
+/* ── Upload ── */
+document.getElementById('uploadBtn').addEventListener('click', uploadAll);
+
+async function uploadAll() {
+  if (!files.length) return;
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  const pw = document.getElementById('progressWrap');
+  const pb = document.getElementById('progressBar');
+  pw.style.display = 'block';
+
+  try {
+    const tok = await jwt();
+    const base = '/.netlify/git/github';
+    const h = { 'Authorization': `Bearer ${tok}`, 'Content-Type': 'application/json' };
+
+    setStatus('Fetching repo state…');
+    const ref    = await api(`${base}/git/refs/heads/main`, h);
+    const commit = await api(`${base}/git/commits/${ref.object.sha}`, h);
+
+    setStatus('Reading photos.json…');
+    const pjRes  = await fetch(`${base}/contents/photos.json`, { headers: h });
+    let existing = [];
+    if (pjRes.ok) {
+      const pjData = await pjRes.json();
+      existing = JSON.parse(atob(pjData.content.replace(/\s/g,''))).photos || [];
+    }
+
+    const tags = document.getElementById('defaultTags').value
+      .split(',').map(t => t.trim()).filter(Boolean);
+
+    const treeItems = [];
+    const newEntries = [];
+    let done = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const card  = document.getElementById(`pc${i}`);
+      const badge = document.getElementById(`bd${i}`);
+      card.classList.add('uploading');
+      badge.textContent = 'Uploading…';
+      setStatus(`Uploading ${i+1} / ${files.length}: ${f.file.name}`);
+
+      try {
+        const b64  = await toBase64(f.file);
+        const blob = await api(`${base}/git/blobs`, h, { content: b64, encoding: 'base64' });
+        const ext  = f.file.name.split('.').pop().toLowerCase() || 'jpg';
+        const slug = (f.title||'photo').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const path = `images/uploads/${Date.now()}-${slug}.${ext}`;
+
+        treeItems.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
+        newEntries.push({
+          title: f.title || f.file.name,
+          image: `/${path}`,
+          description: f.description || '',
+          date: new Date().toISOString().split('T')[0],
+          tags
+        });
+
+        card.classList.remove('uploading'); card.classList.add('done');
+        badge.textContent = '✓ Done';
+      } catch {
+        card.classList.remove('uploading'); card.classList.add('error');
+        badge.textContent = '✗ Failed';
+      }
+
+      done++;
+      pb.style.width = `${Math.round((done / files.length) * 80)}%`;
+    }
+
+    if (!newEntries.length) throw new Error('All uploads failed');
+
+    setStatus('Saving photos.json…');
+    const updated  = { photos: [...existing, ...newEntries] };
+    const jsonB64  = btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))));
+    const jsonBlob = await api(`${base}/git/blobs`, h, { content: jsonB64, encoding: 'base64' });
+    treeItems.push({ path: 'photos.json', mode: '100644', type: 'blob', sha: jsonBlob.sha });
+
+    setStatus('Creating commit…');
+    pb.style.width = '90%';
+    const newTree   = await api(`${base}/git/trees`,   h, { base_tree: commit.tree.sha, tree: treeItems });
+    const newCommit = await api(`${base}/git/commits`, h, {
+      message: `Add ${newEntries.length} photo(s) via bulk upload`,
+      tree: newTree.sha, parents: [ref.object.sha]
+    });
+    await api(`${base}/git/refs/heads/main`, h, { sha: newCommit.sha }, 'PATCH');
+
+    pb.style.width = '100%';
+    setStatus(`✓ ${newEntries.length} photo(s) uploaded! Site redeploys in ~30 sec.`, 'ok');
+    btn.disabled = false;
+
+    setTimeout(() => {
+      files.forEach(f => URL.revokeObjectURL(f.url));
+      files = []; render();
+      pb.style.width = '0'; pw.style.display = 'none';
+    }, 4000);
+
+  } catch (err) {
+    setStatus(`Error: ${err.message}`, 'err');
+    btn.disabled = false;
+  }
+}
+
+async function api(url, headers, body, method) {
+  const m = method || (body ? 'POST' : 'GET');
+  const res = await fetch(url, { method: m, headers, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) throw new Error(`${m} ${url} → ${res.status}`);
+  return res.json();
+}
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg; el.className = type;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

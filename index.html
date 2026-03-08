@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,7 @@
 </head>
 <body>
 
+  <!-- ── Navigation ── -->
   <header class="site-header">
     <nav class="nav">
       <a href="#" class="site-title" id="siteTitle">Photoblog</a>
@@ -18,10 +19,17 @@
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span class="t-dark">&#9790;</span>
+          <span class="t-light">&#9728;</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      </div>
     </nav>
   </header>
 
+  <!-- ── Hero ── -->
   <section class="hero">
     <div class="hero-content">
       <h1 id="heroTitle">Photoblog</h1>
@@ -30,12 +38,61 @@
   </section>
 
   <main>
+    <!-- ── Gallery ── -->
     <section id="gallery" class="gallery-section">
-      <div class="gallery-grid" id="galleryGrid">
-        <div class="loading">Loading gallery...</div>
+
+      <div class="gallery-header">
+        <span class="photo-count" id="photoCount"></span>
+        <div class="view-controls">
+          <button class="view-btn active" id="btnGrid" title="Grid view" aria-label="Grid view">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
+              <rect x="0" y="0" width="6" height="6" rx="0.5"/>
+              <rect x="9" y="0" width="6" height="6" rx="0.5"/>
+              <rect x="0" y="9" width="6" height="6" rx="0.5"/>
+              <rect x="9" y="9" width="6" height="6" rx="0.5"/>
+            </svg>
+          </button>
+          <button class="view-btn" id="btnCarousel" title="Slideshow" aria-label="Slideshow view">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
+              <rect x="2" y="1" width="11" height="9" rx="1"/>
+              <rect x="0" y="3" width="1.5" height="5" rx="0.75"/>
+              <rect x="13.5" y="3" width="1.5" height="5" rx="0.75"/>
+              <circle cx="5" cy="13" r="1"/>
+              <circle cx="7.5" cy="13" r="1"/>
+              <circle cx="10" cy="13" r="1"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      <!-- Grid -->
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="loading">Loading gallery&#8230;</div>
+      </div>
+
+      <!-- Carousel -->
+      <div class="carousel-wrap" id="carouselWrap">
+        <div class="carousel-viewport">
+          <div class="carousel-stage" id="carouselStage"></div>
+          <button class="car-arrow car-prev" id="carPrev" aria-label="Previous photo">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="14,5 8,11 14,17"/>
+            </svg>
+          </button>
+          <button class="car-arrow car-next" id="carNext" aria-label="Next photo">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="8,5 14,11 8,17"/>
+            </svg>
+          </button>
+        </div>
+        <div class="car-dots" id="carDots"></div>
+        <div class="car-info"  id="carInfo"></div>
+        <div class="thumb-strip" id="thumbStrip"></div>
+      </div>
+
     </section>
 
+    <!-- ── About ── -->
     <section id="about" class="about-section">
       <div class="about-content">
         <div class="about-image-wrap" id="aboutImageWrap"></div>
@@ -47,20 +104,15 @@
       </div>
     </section>
 
+    <!-- ── Contact ── -->
     <section id="contact" class="contact-section">
       <div class="contact-content">
         <h2>Contact</h2>
         <form name="contact" method="POST" data-netlify="true" class="contact-form" id="contactForm">
           <input type="hidden" name="form-name" value="contact">
-          <div class="form-group">
-            <input type="text" name="name" placeholder="Your name" required>
-          </div>
-          <div class="form-group">
-            <input type="email" name="email" placeholder="Your email" required>
-          </div>
-          <div class="form-group">
-            <textarea name="message" placeholder="Your message" rows="5" required></textarea>
-          </div>
+          <div class="form-group"><input type="text"  name="name"    placeholder="Your name"    required></div>
+          <div class="form-group"><input type="email" name="email"   placeholder="Your email"   required></div>
+          <div class="form-group"><textarea           name="message" placeholder="Your message" rows="5" required></textarea></div>
           <button type="submit" class="btn-submit">Send Message</button>
         </form>
         <div class="form-success" id="formSuccess">
@@ -70,42 +122,31 @@
     </section>
   </main>
 
-  <!-- Photo Modal -->
+  <!-- ── Modal ── -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <button class="modal-close" id="modalClose" aria-label="Close">&#x2715;</button>
-      <div class="modal-image-wrap">
-        <img src="" alt="" id="modalImage">
-      </div>
+      <div class="modal-image-wrap"><img src="" alt="" id="modalImage"></div>
       <div class="modal-info">
-        <h2 class="modal-title" id="modalTitle"></h2>
-        <p class="modal-description" id="modalDescription"></p>
-        <div class="modal-tags" id="modalTags"></div>
-        <div class="modal-date" id="modalDate"></div>
+        <h2 class="modal-title"       id="modalTitle"></h2>
+        <p  class="modal-description" id="modalDescription"></p>
+        <div class="modal-tags"  id="modalTags"></div>
+        <div class="modal-date"  id="modalDate"></div>
         <div class="modal-actions">
-          <button class="btn-like" id="modalLike">
-            <span class="heart-icon">&#9829;</span>
-            <span id="modalLikeCount">0</span>
-          </button>
+          <button class="btn-like"  id="modalLike"><span class="heart-icon">&#9829;</span><span id="modalLikeCount">0</span></button>
           <button class="btn-share" id="modalShare">&#8682; Share</button>
         </div>
       </div>
     </div>
   </div>
 
-  <footer class="site-footer">
-    <p id="footerText"></p>
-  </footer>
+  <footer class="site-footer"><p id="footerText"></p></footer>
 
   <script src="/js/main.js"></script>
   <script>
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", user => {
-        if (!user) {
-          window.netlifyIdentity.on("login", () => {
-            document.location.href = "/admin/";
-          });
-        }
+        if (!user) window.netlifyIdentity.on("login", () => { document.location.href = "/admin/"; });
       });
     }
   </script>

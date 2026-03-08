@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Photography portfolio">
+  <title>Photoblog</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a href="#" class="site-title" id="siteTitle">Photoblog</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 id="heroTitle">Photoblog</h1>
+      <p id="heroTagline">Through the lens of light and shadow</p>
+    </div>
+  </section>
+
+  <main>
+    <section id="gallery" class="gallery-section">
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="loading">Loading gallery...</div>
+      </div>
+    </section>
+
+    <section id="about" class="about-section">
+      <div class="about-content">
+        <div class="about-image-wrap" id="aboutImageWrap"></div>
+        <div class="about-text">
+          <h2 id="aboutTitle">About</h2>
+          <p id="aboutBio">Welcome to my photoblog.</p>
+          <div class="social-links" id="socialLinks"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+      <div class="contact-content">
+        <h2>Contact</h2>
+        <form name="contact" method="POST" data-netlify="true" class="contact-form" id="contactForm">
+          <input type="hidden" name="form-name" value="contact">
+          <div class="form-group">
+            <input type="text" name="name" placeholder="Your name" required>
+          </div>
+          <div class="form-group">
+            <input type="email" name="email" placeholder="Your email" required>
+          </div>
+          <div class="form-group">
+            <textarea name="message" placeholder="Your message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Send Message</button>
+        </form>
+        <div class="form-success" id="formSuccess">
+          <p>Thanks for reaching out. I&#39;ll get back to you soon.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Photo Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose" aria-label="Close">&#x2715;</button>
+      <div class="modal-image-wrap">
+        <img src="" alt="" id="modalImage">
+      </div>
+      <div class="modal-info">
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <p class="modal-description" id="modalDescription"></p>
+        <div class="modal-tags" id="modalTags"></div>
+        <div class="modal-date" id="modalDate"></div>
+        <div class="modal-actions">
+          <button class="btn-like" id="modalLike">
+            <span class="heart-icon">&#9829;</span>
+            <span id="modalLikeCount">0</span>
+          </button>
+          <button class="btn-share" id="modalShare">&#8682; Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p id="footerText"></p>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", () => {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
